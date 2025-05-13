@@ -12,14 +12,24 @@
     canvas {
       display: block;
     }
+    #startButton {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      z-index: 10;
+    }
   </style>
 </head>
 <body>
+<button id="startButton">Iniciar Visuales</button>
 <canvas id="canvas"></canvas>
 
 <script>
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
+  const startButton = document.getElementById('startButton');
 
   let width = window.innerWidth;
   let height = window.innerHeight;
@@ -38,7 +48,6 @@
     opacity: 1
   }));
 
-  // Control parameters from MIDI CC
   let colorHue = 0;
   let sizeFactor = 1;
   let rotationSpeed = 0;
@@ -68,7 +77,6 @@
       v.x += Math.cos(v.angle + i) * v.speed * animationSpeed;
       v.y += Math.sin(v.angle + i) * v.speed * animationSpeed;
 
-      // wrap around
       if (v.x < 0) v.x += width;
       if (v.x > width) v.x -= width;
       if (v.y < 0) v.y += height;
@@ -77,8 +85,6 @@
 
     requestAnimationFrame(draw);
   }
-
-  draw();
 
   // MIDI Setup
   if (navigator.requestMIDIAccess) {
@@ -103,7 +109,6 @@
     const command = status >> 4;
     const channel = status & 0xf;
 
-    // Note On (activar/desactivar visual)
     if (command === 9 && data2 > 0) {
       const padIndex = data1 - 36;
       if (padIndex >= 0 && padIndex < NUM_PADS) {
@@ -111,24 +116,23 @@
       }
     }
 
-    // Control Change (CC)
     if (command === 11) {
       const value = data2 / 127;
       switch (data1) {
-        case 9:  // CC9 - Hue (0–360)
+        case 9:
           colorHue = value * 360;
           break;
-        case 10: // CC10 - Size
-          sizeFactor = 0.5 + value * 2; // 0.5x to 2.5x
+        case 10:
+          sizeFactor = 0.5 + value * 2;
           break;
-        case 11: // CC11 - Rotation speed
-          rotationSpeed = value * 10; // 0–10
+        case 11:
+          rotationSpeed = value * 10;
           break;
-        case 12: // CC12 - Animation speed
-          animationSpeed = value * 5; // 0–5
+        case 12:
+          animationSpeed = value * 5;
           break;
-        case 13: // CC13 - Opacity
-          opacity = 0.2 + value * 0.8; // 0.2–1
+        case 13:
+          opacity = 0.2 + value * 0.8;
           break;
       }
     }
@@ -140,6 +144,10 @@
     canvas.width = width;
     canvas.height = height;
   });
-</script>
-</body>
-</html>
+
+  // Esperar interacción del usuario para iniciar
+  startButton.addEventListener('click', () => {
+    startButton.remove();
+    draw();
+  });
+</
